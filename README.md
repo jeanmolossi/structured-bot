@@ -39,6 +39,7 @@ Look the architecture:
 -
 - Usuário padrão
   - Deve poder cadastrar uma senha
+  - Deve poder cadastrar uma transação da Monetizze
   - Deve poder recuperar senha através do telegram
   - Deve poder acessar lista de grupos de seus produtos
 - Usuário Administrador
@@ -46,5 +47,17 @@ Look the architecture:
   - Deve poder syncronizar produtos com grupos
   - Deve poder alterar o cadastro de um cliente
   - Deve poder excluir o cadastro de um cliente
+
+---
+
+- Produto
+  - Deve poder ser sincronizado nos grupos
+  - Deve poder ser removido da sincronização
+
+---
+
+- Bot
+  - Deve poder executar limpeza no grupo
+  - Deve poder enviar um código de recuperação de senha para o usuário
 
 ## frontend
