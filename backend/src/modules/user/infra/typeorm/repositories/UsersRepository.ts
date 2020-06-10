@@ -3,21 +3,31 @@ import { MongoRepository, getMongoRepository } from 'typeorm';
 import IUserRepository from '@modules/user/repositories/IUserRepository';
 import ICreateUserDTO from '@modules/user/dtos/ICreateUserDTO';
 import IUpdateUserDTO from '@modules/user/dtos/IUpdateUserDTO';
+import TransactionSchema from '@modules/transactions/infra/typeorm/schemas/TransactionSchema';
 import UserSchema from '../schemas/UserSchema';
 
 class UsersRepository implements IUserRepository {
   private ormRepository: MongoRepository<UserSchema>;
 
+  private transactionRepository: MongoRepository<TransactionSchema>;
+
   constructor() {
     this.ormRepository = getMongoRepository(UserSchema);
+    this.transactionRepository = getMongoRepository(TransactionSchema);
   }
 
   public async create(data: ICreateUserDTO): Promise<UserSchema> {
     const newUser = this.ormRepository.create(data);
 
-    this.ormRepository.save(newUser);
+    await this.ormRepository.save(newUser);
 
     return newUser;
+  }
+
+  public async findAll(): Promise<UserSchema[]> {
+    const allUsers = await this.ormRepository.find();
+
+    return allUsers;
   }
 
   public async findById(userId: string): Promise<UserSchema | null> {
@@ -36,16 +46,14 @@ class UsersRepository implements IUserRepository {
   }
 
   public async updateUserByTgId(data: IUpdateUserDTO): Promise<UserSchema> {
-    const userToUpdate = await this.ormRepository.updateOne(
+    const userToUpdate = await this.ormRepository.findOneAndUpdate(
       { tgId: data.tgId },
-      data,
+      { $set: data },
     );
 
-    const updatedUser = await this.ormRepository.findOne({
-      id: userToUpdate.upsertedId._id,
-    });
+    const userUpdated = Object.assign(userToUpdate.value, data);
 
-    return updatedUser;
+    return userUpdated;
   }
 }
 

@@ -7,6 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import TransactionSchema from '@modules/transactions/infra/typeorm/schemas/TransactionSchema';
 
 @Entity('users')
 class UserSchema implements IUserModel {
@@ -30,6 +31,18 @@ class UserSchema implements IUserModel {
 
   @Column()
   tgId: string;
+
+  @Column({ default: false })
+  isAdmin: boolean;
+
+  @Column()
+  apiConfig: string;
+
+  @Column({ default: false })
+  isSupport: boolean;
+
+  @Column(() => TransactionSchema)
+  transactions: Array<TransactionSchema>;
 
   @CreateDateColumn()
   created_at?: Date;

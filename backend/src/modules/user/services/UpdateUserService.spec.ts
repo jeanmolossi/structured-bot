@@ -1,14 +1,18 @@
 import AppError from '@shared/errors/AppError';
+import FakeCacheProvider from '@shared/container/providers/CacheProvider/fakes/FakeCacheProvider';
+import ICacheProvider from '@shared/container/providers/CacheProvider/models/ICacheProvider';
 import UpdateUserService from './UpdateUserService';
 
 import FakeUserRepository from '../repositories/fakes/FakeUserRepository';
 import IUserRepository from '../repositories/IUserRepository';
 
 let fakeUserRepository: IUserRepository;
+let fakeCacheProvider: ICacheProvider;
 
 describe('UpdateUser', () => {
   beforeEach(() => {
     fakeUserRepository = new FakeUserRepository();
+    fakeCacheProvider = new FakeCacheProvider();
   });
 
   it('should be able update user info', async () => {
@@ -21,7 +25,10 @@ describe('UpdateUser', () => {
       password: '123456',
     });
 
-    const updateService = new UpdateUserService(fakeUserRepository);
+    const updateService = new UpdateUserService(
+      fakeUserRepository,
+      fakeCacheProvider,
+    );
     const updatedUser = await updateService.execute({
       name: 'John Trê',
       email: 'johntre@email.com',
@@ -36,7 +43,10 @@ describe('UpdateUser', () => {
   });
 
   it('should not be able update unexists user', async () => {
-    const updateService = new UpdateUserService(fakeUserRepository);
+    const updateService = new UpdateUserService(
+      fakeUserRepository,
+      fakeCacheProvider,
+    );
 
     await expect(
       updateService.execute({
@@ -69,7 +79,10 @@ describe('UpdateUser', () => {
       password: '123456',
     });
 
-    const updateUser = new UpdateUserService(fakeUserRepository);
+    const updateUser = new UpdateUserService(
+      fakeUserRepository,
+      fakeCacheProvider,
+    );
 
     await expect(
       updateUser.execute({

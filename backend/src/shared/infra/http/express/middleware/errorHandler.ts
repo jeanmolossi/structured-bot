@@ -4,6 +4,7 @@ import AppError from '@shared/errors/AppError';
 interface IErrorBody {
   status: string;
   message: string;
+  stack?: string;
 }
 
 export default (
@@ -20,7 +21,8 @@ export default (
   }
 
   return response.status(500).json({
-    status: 'Error',
-    message: 'Internal server error',
+    status: `Error ${err.name}`,
+    message: `Internal server error -> ${err.message}`,
+    stack: `${err.stack}`,
   });
 };

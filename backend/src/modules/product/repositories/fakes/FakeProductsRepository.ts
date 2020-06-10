@@ -1,8 +1,9 @@
+import { ObjectID } from 'mongodb';
 import IProductRepository from '@modules/product/repositories/IProductRepository';
 import ICreateProductDTO from '@modules/product/dtos/ICreateProductDTO';
 import IProductModel from '@modules/product/entities/IProductModel';
 import ProductSchema from '@modules/product/infra/typeorm/schemas/ProductShema';
-import { ObjectID } from 'mongodb';
+import IFindProductDTO from '@modules/product/dtos/IFindProductDTO';
 
 class ProductsRepository implements IProductRepository {
   private products: IProductModel[] = [];
@@ -15,6 +16,17 @@ class ProductsRepository implements IProductRepository {
     this.products.push(productCreated);
 
     return productCreated;
+  }
+
+  public async findAll({
+    hasSync = false,
+  }: IFindProductDTO): Promise<IProductModel[]> {
+    if (hasSync) {
+      return this.products;
+    }
+
+    const products = this.products.filter(product => product.isSync === true);
+    return products;
   }
 }
 

@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 import AppError from '@shared/errors/AppError';
 import IUserModel from '@modules/user/entities/IUserModel';
+import ICacheProvider from '@shared/container/providers/CacheProvider/models/ICacheProvider';
 
 import IUserRepository from '../repositories/IUserRepository';
 import IUpdateUserDTO from '../dtos/IUpdateUserDTO';
@@ -9,8 +10,11 @@ import IUpdateUserDTO from '../dtos/IUpdateUserDTO';
 @injectable()
 class UpdateUserService {
   constructor(
-    @inject('UserRepository')
+    @inject('UsersRepository')
     private userRepository: IUserRepository,
+
+    @inject('CacheProvider')
+    private cacheProvider: ICacheProvider,
   ) {}
 
   public async execute(data: IUpdateUserDTO): Promise<IUserModel> {
@@ -26,6 +30,9 @@ class UpdateUserService {
       throw new AppError('The email already exists', 400);
 
     const updatedUser = await this.userRepository.updateUserByTgId(data);
+
+    await this.cacheProvider.invalidatePrefix('ShowUserById');
+    await this.cacheProvider.invalidate('getAllUsers');
 
     return updatedUser;
   }

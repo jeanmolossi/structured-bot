@@ -7,7 +7,7 @@ import UserSchema from '@modules/user/infra/typeorm/schemas/UserSchema';
 
 interface IUpdateUserRequest extends IUpdateUserDTO, UserSchema {}
 
-class UserRepository implements IUserRepository {
+class FakeUserRepository implements IUserRepository {
   private Users: UserSchema[] = [];
 
   public async create({
@@ -17,6 +17,9 @@ class UserRepository implements IUserRepository {
     cpf,
     tgId,
     password,
+    isAdmin,
+    isSupport,
+    apiConfig,
   }: ICreateUserDTO): Promise<UserSchema> {
     const objectId = new ObjectID();
     const user = new UserSchema();
@@ -29,6 +32,9 @@ class UserRepository implements IUserRepository {
       cpf,
       tgId,
       password,
+      isAdmin,
+      isSupport,
+      apiConfig,
     });
 
     this.Users.push(user);
@@ -78,4 +84,4 @@ class UserRepository implements IUserRepository {
   }
 }
 
-export default UserRepository;
+export default FakeUserRepository;

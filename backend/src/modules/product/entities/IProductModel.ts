@@ -1,5 +1,5 @@
 export default interface IProductModel {
-  productId: string;
+  productId: string | number;
   name: string;
   isActive: boolean;
   isSync: boolean;

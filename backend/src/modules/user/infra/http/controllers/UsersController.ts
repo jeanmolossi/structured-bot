@@ -5,7 +5,7 @@ import CreateUserService from '@modules/user/services/CreateUserService';
 import ShowUserByIdService from '@modules/user/services/ShowUserByIdService';
 
 import UpdateUserService from '@modules/user/services/UpdateUserService';
-import UsersRepository from '../../mongoose/repositories/UserRepository';
+import UsersRepository from '../../typeorm/repositories/UsersRepository';
 
 class UsersController {
   async create(request: Request, response: Response): Promise<Response> {

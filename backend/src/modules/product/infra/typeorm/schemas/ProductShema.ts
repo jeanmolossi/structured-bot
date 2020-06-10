@@ -17,7 +17,7 @@ class ProductSchema implements IProductModel {
   name: string;
 
   @Column()
-  productId: string;
+  productId: string | number;
 
   @Column()
   isActive: boolean;
