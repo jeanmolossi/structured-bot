@@ -18,6 +18,14 @@ class ProductsRepository implements IProductRepository {
     return productCreated;
   }
 
+  public async findByProductId(
+    productId: number | string,
+  ): Promise<IProductModel | null> {
+    const product = this.products.find(p => p.productId === productId);
+
+    return product;
+  }
+
   public async findAll({
     hasSync = false,
   }: IFindProductDTO): Promise<IProductModel[]> {

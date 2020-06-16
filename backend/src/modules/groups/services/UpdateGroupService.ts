@@ -15,11 +15,15 @@ export default class UpdateGroupService {
   ) {}
 
   public async execute(groupData: IGroupModel): Promise<IGroupModel> {
-    const issetGroup = await this.groupsRepository.findByGroupTgId(
-      groupData.currentId,
-    );
+    const { currentId } = groupData;
+    const issetGroup = await this.groupsRepository.findByGroupTgId(currentId);
 
-    if (issetGroup) throw new AppError('This Telegram id group already taken');
+    if (
+      issetGroup &&
+      issetGroup.product &&
+      (issetGroup.productId !== null || issetGroup.productId !== undefined)
+    )
+      throw new AppError('This Telegram id group already taken');
 
     const group = await this.groupsRepository.save(groupData);
 

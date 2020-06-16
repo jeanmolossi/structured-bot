@@ -1,7 +1,6 @@
-import TelegrafInlineMenu from 'telegraf-inline-menu';
-import { container } from 'tsyringe';
+import { container, injectable, inject } from 'tsyringe';
+import { ContextNextFunc } from 'telegraf-inline-menu/dist/source/generic-types';
 
-import State from '@shared/infra/api/telegrafSession';
 import IUserModel from '@modules/user/entities/IUserModel';
 import IGroupModel from '@modules/groups/entities/IGroupModel';
 import FindAllGroups from '@modules/groups/services/FindAllGroups';
@@ -10,141 +9,165 @@ import FindProductService from '@modules/product/services/FindProductsService';
 import UpdateGroupService from '@modules/groups/services/UpdateGroupService';
 import GroupSchema from '@modules/groups/infra/typeorm/schemas/GroupSchema';
 import FindUserByTgIdService from '@modules/user/services/FindUserByTgIdService';
+import IMenuTelegrafProvider from '@shared/container/providers/MenuTelegrafProvider/models/IMenuTelegrafProvider';
+import ICacheProvider from '@shared/container/providers/CacheProvider/models/ICacheProvider';
 import ProductSchema from '../typeorm/schemas/ProductShema';
 
-let dbUser: IUserModel;
-let tgId: string;
-let groups: IGroupModel[];
-let products: IProductModel[];
+@injectable()
+class UserProductMenu {
+  constructor(
+    @inject('MenuTelegrafProvider')
+    private menuTelegrafInline: IMenuTelegrafProvider,
 
-let selectedGroup: GroupSchema = {} as GroupSchema;
-let selectedProduct: ProductSchema = {} as ProductSchema;
+    @inject('CacheProvider')
+    private cacheProvider: ICacheProvider,
+  ) {}
 
-let hideSelects = false;
+  public async execute(): Promise<ContextNextFunc> {
+    let dbUser: IUserModel;
+    let tgId: string;
+    let groups: IGroupModel[];
+    let products: IProductModel[];
 
-const ProductMenu = new TelegrafInlineMenu(async _context => {
-  tgId = String(_context.from?.id);
+    let selectedGroup: GroupSchema = {} as GroupSchema;
+    let selectedProduct: ProductSchema = {} as ProductSchema;
 
-  const { fromUser } = State.getState(tgId);
-  const findUser = container.resolve(FindUserByTgIdService);
-  dbUser = await findUser.execute(String(tgId));
+    let hideSelects =
+      (await this.cacheProvider.recover<boolean>(`hideSelects`)) || false;
 
-  if (!(dbUser.isAdmin || dbUser.isSupport)) {
-    hideSelects = true;
-    return `Somente administradores podem usar este comando, desculpe`;
-  }
+    this.menuTelegrafInline.setOptions({
+      command: 'produto',
+      initializer: async _context => {
+        tgId = String(_context.from?.id);
 
-  if (dbUser === null || dbUser === undefined) {
-    hideSelects = true;
-    return `${fromUser.first_name}, envie seus dados em /start antes de acessar este menu`;
-  }
+        const { first_name } = this.menuTelegrafInline.getFromUser(_context);
+        const findUser = container.resolve(FindUserByTgIdService);
+        dbUser = await findUser.execute(String(tgId));
 
-  const findGroups = container.resolve(FindAllGroups);
-  groups = await findGroups.execute();
+        if (!(dbUser.isAdmin || dbUser.isSupport)) {
+          this.cacheProvider.save('hideSelects', true);
+          return `Somente administradores podem usar este comando, desculpe`;
+        }
 
-  const findProducts = container.resolve(FindProductService);
-  products = await findProducts.execute({ hasSync: false });
+        if (dbUser === null || dbUser === undefined) {
+          this.cacheProvider.save('hideSelects', true);
+          return `${first_name}, envie seus dados em /start antes de acessar este menu`;
+        }
 
-  if (hideSelects) return `Você sincronizou com sucesso. Obrigado`;
+        const findGroups = container.resolve(FindAllGroups);
+        groups = await findGroups.execute(true);
 
-  return `Bem vindo à sincronização de produto, vamos iniciar?`;
-});
+        const findProducts = container.resolve(FindProductService);
+        products = await findProducts.execute({ hasSync: true });
 
-ProductMenu.setCommand('produto');
+        if (hideSelects) return `Você sincronizou com sucesso. Obrigado`;
 
-const Grupos = new TelegrafInlineMenu('Grupos');
-
-Grupos.select('sg', () => Object.keys(groups), {
-  setFunc: (_context, _key) => {
-    selectedGroup = groups[_key];
-  },
-  textFunc: (_, _key) => {
-    return groups[_key].name;
-  },
-  columns: 1,
-  isSetFunc: () => {
-    console.log(selectedGroup);
-    return !!(selectedGroup && selectedGroup.name);
-  },
-  setParentMenuAfter: true,
-});
-
-ProductMenu.submenu(
-  () => {
-    if (selectedGroup && selectedGroup.name)
-      return `Grupos - ${selectedGroup.name}`;
-    return 'Grupos';
-  },
-  'sgs',
-  Grupos,
-  {
-    hide: () => hideSelects,
-  },
-);
-
-const Produtos = new TelegrafInlineMenu('Produtos');
-
-ProductMenu.submenu(
-  () => {
-    if (selectedProduct && selectedProduct.name)
-      return `Produtos - ${selectedProduct.name}`;
-    return 'Produtos';
-  },
-  'sps',
-  Produtos,
-  {
-    hide: () => hideSelects,
-  },
-);
-
-Produtos.select('sp', () => Object.keys(products), {
-  setFunc: (_context, _key) => {
-    console.log(products[_key], '>> SELECTED KEY');
-    selectedProduct = products[_key];
-  },
-  textFunc: (_, _key) => {
-    return products[_key].name;
-  },
-  isSetFunc: () => {
-    return !!(selectedProduct && selectedProduct.name);
-  },
-  setParentMenuAfter: true,
-});
-
-ProductMenu.button('Sincronizar', 'fsync', {
-  doFunc: async _context => {
-    console.log(
-      `>> ENVIANDO DADOS >> ${JSON.stringify(
-        selectedGroup,
-      )} & >> & ${selectedProduct}`,
-    );
-
-    const updateGroup = container.resolve(UpdateGroupService);
-    await updateGroup.execute({
-      ...selectedGroup,
-      productId: Number(selectedProduct.productId),
-      product: selectedProduct.id,
+        return `Bem vindo à sincronização de produto, vamos iniciar?`;
+      },
     });
 
-    await _context.answerCbQuery('Sincronizando...');
+    this.menuTelegrafInline.addSelect({
+      submenuProps: {
+        message: 'Grupos que não tem produto sincronizado',
+        text: (): string => {
+          if (selectedGroup && selectedGroup.name)
+            return `Grupos - ${selectedGroup.name}`;
+          return 'Grupos';
+        },
+        action: 'sgs',
+        additionalArgs: {
+          hide: (): boolean => hideSelects,
+        },
+      },
+      selectProps: {
+        action: 'sg',
+        options: (): Array<string> => Object.keys(groups),
+        additionalArgs: {
+          setFunc: (_context, _key): void => {
+            selectedGroup = groups[_key];
+          },
+          textFunc: (_, _key): string => {
+            return groups[_key].name;
+          },
+          columns: 1,
+          isSetFunc: (): boolean => {
+            // console.log(selectedGroup);
+            return !!(selectedGroup && selectedGroup.name);
+          },
+          setParentMenuAfter: true,
+        },
+      },
+    });
 
-    await _context.editMessageText(
-      `O Grupos ${selectedGroup.name} foi sincronizado com o produto ${selectedProduct.name}`,
-    );
+    this.menuTelegrafInline.addSelect({
+      submenuProps: {
+        message: 'Seus produtos',
+        text: (): string => {
+          if (selectedProduct && selectedProduct.name)
+            return `Produtos - ${selectedProduct.name}`;
+          return 'Produtos';
+        },
+        action: 'sps',
+        additionalArgs: {
+          hide: (): boolean => hideSelects,
+        },
+      },
+      selectProps: {
+        action: 'sp',
+        options: (): Array<string> => Object.keys(products),
+        additionalArgs: {
+          setFunc: (_context, _key): void => {
+            // console.log(products[_key], '>> SELECTED KEY');
+            selectedProduct = products[_key];
+          },
+          textFunc: (_, _key): string => {
+            return products[_key].name;
+          },
+          isSetFunc: (): boolean => {
+            return !!(selectedProduct && selectedProduct.name);
+          },
+          setParentMenuAfter: true,
+        },
+      },
+    });
 
-    hideSelects = true;
-  },
-  hide: () => !(selectedProduct.name && selectedGroup.name) || hideSelects,
-  setMenuAfter: false,
-});
+    this.menuTelegrafInline.addButton({
+      buttonType: 'simpleButton',
+      buttonProps: {
+        text: 'Sincronizar',
+        action: 'fsync',
+        additionalArgs: {
+          doFunc: async (_context): Promise<void> => {
+            // console.log(`>> ENVIANDO DADOS >> ${JSON.stringify(selectedGroup,)} & >> & ${selectedProduct}`,);
 
-export default ProductMenu.init({
-  actionCode: 'produto',
-  backButtonText: 'Voltar',
-  mainMenuButtonText: 'Voltar ao início',
-});
+            const updateGroup = container.resolve(UpdateGroupService);
+            await updateGroup.execute({
+              ...selectedGroup,
+              productId: Number(selectedProduct.productId),
+              product: selectedProduct.id,
+            });
 
-/**
- * BUSCAR GRUPOS SEM PRODUTO
- * BUSCAR PRODUTOS
- */
+            await _context.answerCbQuery('Sincronizando...');
+
+            await _context.editMessageText(
+              `O Grupos ${selectedGroup.name} foi sincronizado com o produto ${selectedProduct.name}`,
+            );
+
+            hideSelects = true;
+          },
+          hide: (): boolean =>
+            !(selectedProduct.name && selectedGroup.name) || hideSelects,
+          setMenuAfter: false,
+        },
+      },
+    });
+
+    return this.menuTelegrafInline.init({
+      actionCode: 'produto',
+      backButtonText: 'Voltar',
+      mainMenuButtonText: 'Voltar ao início',
+    });
+  }
+}
+
+export default UserProductMenu;

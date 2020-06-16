@@ -29,6 +29,33 @@ describe('FindUserByTgId', () => {
       tgId: 'valid-tg-id',
     });
 
+    jest
+      .spyOn<ICacheProvider, any>(fakeCacheProvider, 'recover')
+      .mockImplementationOnce(() => {
+        return validUser;
+      });
+
+    const user = await findUser.execute('valid-tg-id');
+
+    expect(user).toEqual(validUser);
+  });
+
+  it('Should be able returns an user if they exists, even if not in cache', async () => {
+    const validUser = await fakeUsersRepository.create({
+      name: 'valid-name',
+      email: 'valid-email',
+      cpf: 'valid-cpf',
+      telefone: 'valid-phone',
+      password: 'valid-password',
+      tgId: 'valid-tg-id',
+    });
+
+    jest
+      .spyOn<ICacheProvider, any>(fakeCacheProvider, 'recover')
+      .mockImplementationOnce(() => {
+        return undefined;
+      });
+
     const user = await findUser.execute('valid-tg-id');
 
     expect(user).toEqual(validUser);

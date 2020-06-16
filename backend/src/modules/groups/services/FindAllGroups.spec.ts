@@ -40,9 +40,25 @@ describe('FindAllGroups', () => {
       productId: 1234654,
     });
 
+    jest
+      .spyOn<ICacheProvider, any>(fakeCacheProvider, 'recover')
+      .mockImplementationOnce(() => {
+        return [group1, group2];
+      });
+
     const groups = await findAllGroups.execute();
 
     expect(groups).toEqual([group1, group2]);
+
+    jest
+      .spyOn<ICacheProvider, any>(fakeCacheProvider, 'recover')
+      .mockImplementationOnce(() => {
+        return undefined;
+      });
+
+    const groupOutCache = await findAllGroups.execute();
+
+    expect(groupOutCache).toEqual([group1, group2]);
   });
 
   it('Should be able to list all groups filtered', async () => {

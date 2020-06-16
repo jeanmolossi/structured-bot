@@ -28,6 +28,7 @@ module.exports = {
     'no-multi-assign': 'off',
     'no-underscore-dangle': 'off',
     '@typescript-eslint/camelcase': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '_' }],
     '@typescript-eslint/interface-name-prefix': [
       'error',

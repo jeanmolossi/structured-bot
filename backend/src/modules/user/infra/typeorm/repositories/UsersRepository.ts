@@ -32,17 +32,17 @@ class UsersRepository implements IUserRepository {
 
   public async findById(userId: string): Promise<UserSchema | null> {
     const findUser = await this.ormRepository.findOne(userId);
-    return findUser;
+    return findUser || null;
   }
 
   public async findBytgId(userTgId: string): Promise<UserSchema | null> {
     const findUser = await this.ormRepository.findOne({ tgId: userTgId });
-    return findUser;
+    return findUser || null;
   }
 
   public async findByEmail(userEmail: string): Promise<UserSchema | null> {
     const findUser = await this.ormRepository.findOne({ email: userEmail });
-    return findUser;
+    return findUser || null;
   }
 
   public async updateUserByTgId(data: IUpdateUserDTO): Promise<UserSchema> {

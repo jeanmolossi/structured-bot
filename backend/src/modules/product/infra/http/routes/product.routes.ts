@@ -6,8 +6,8 @@ const productController = new ProductController();
 const productRoutes = Router();
 
 productRoutes.post('/create', productController.create);
-productRoutes.post('/show', productController.show);
-productRoutes.post('/index', productController.index);
-productRoutes.post('/update', productController.update);
+productRoutes.get('/show', productController.show);
+productRoutes.get('/index', productController.index);
+productRoutes.put('/update', productController.update);
 
 export default productRoutes;

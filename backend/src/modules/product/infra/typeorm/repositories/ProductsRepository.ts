@@ -29,6 +29,16 @@ class ProductsRepository implements IProductRepository {
     return newProduct;
   }
 
+  public async findByProductId(
+    productId: number | string,
+  ): Promise<ProductSchema | null> {
+    const product = await this.ormRepository.findOne({
+      where: { productId },
+    });
+
+    return product || null;
+  }
+
   public async findAll({
     hasSync = false,
   }: IFindProductDTO): Promise<ProductSchema[]> {

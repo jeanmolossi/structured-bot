@@ -5,5 +5,6 @@ import IProductModel from '../entities/IProductModel';
 
 export default interface IProductRepository {
   create(data: ICreateProductDTO): Promise<ProductSchema>;
+  findByProductId(productId: string | number): Promise<IProductModel | null>;
   findAll(IFindParam?: IFindProductDTO): Promise<IProductModel[] | null>;
 }

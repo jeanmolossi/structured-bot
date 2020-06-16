@@ -16,7 +16,7 @@ describe('ShowUserById', () => {
   });
 
   it('should be able show user infos', async () => {
-    const { id } = await fakeUserRepository.create({
+    const user = await fakeUserRepository.create({
       name: 'Jean',
       email: 'jean@email.com',
       telefone: '48984377151',
@@ -29,8 +29,15 @@ describe('ShowUserById', () => {
       fakeUserRepository,
       fakeCacheProvider,
     );
-    if (!id) return;
-    const userInfo = await showUserByIdService.execute(String(id));
+    if (!user.id) return;
+
+    jest
+      .spyOn<ICacheProvider, any>(fakeCacheProvider, 'recover')
+      .mockImplementationOnce(() => {
+        return user;
+      });
+
+    const userInfo = await showUserByIdService.execute(String(user.id));
     expect(userInfo).toHaveProperty('id');
   });
 

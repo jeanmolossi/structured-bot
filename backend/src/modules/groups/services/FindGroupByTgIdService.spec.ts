@@ -40,7 +40,11 @@ describe('findGroup', () => {
       productId: 1234654,
     });
 
-    const cache = jest.spyOn(fakeCacheProvider, 'recover');
+    jest
+      .spyOn<ICacheProvider, any>(fakeCacheProvider, 'recover')
+      .mockImplementationOnce(() => {
+        return group1;
+      });
 
     expect(
       await findGroup.execute({
@@ -48,6 +52,16 @@ describe('findGroup', () => {
       }),
     ).toBe(group1);
 
-    expect(cache).toBeCalledWith(`FindGroupByTgId:${123456}`);
+    jest
+      .spyOn<ICacheProvider, any>(fakeCacheProvider, 'recover')
+      .mockImplementationOnce(() => {
+        return undefined;
+      });
+
+    expect(
+      await findGroup.execute({
+        groupTgId: 123456,
+      }),
+    ).toBe(group1);
   });
 });

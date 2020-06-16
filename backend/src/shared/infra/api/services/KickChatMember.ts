@@ -18,10 +18,16 @@ export default class KickChatMember {
     chatId,
     untilDate,
   }: IRequest): Promise<boolean> {
-    return this.context.telegram.kickChatMember(
+    const chat = await this.context.telegram.getChat(chatId);
+
+    if (chat.type === 'private') return false;
+
+    const kick = await this.context.telegram.kickChatMember(
       chatId,
       Number(userId),
       untilDate,
     );
+
+    return kick;
   }
 }

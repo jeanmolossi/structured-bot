@@ -48,6 +48,58 @@ describe('GetUsersDefaultIds', () => {
       isSupport: true,
     });
 
+    jest
+      .spyOn<ICacheProvider, any>(fakeCacheProvider, 'recover')
+      .mockImplementationOnce(() => {
+        return [validUser, anotherValidUser, staffUser];
+      });
+
+    const users = await findUsers.execute();
+
+    expect(users).toEqual([
+      validUser.tgId,
+      anotherValidUser.tgId,
+      staffUser.tgId,
+    ]);
+  });
+
+  it('Should be able returns users that is not staff, even if not in cache', async () => {
+    const validUser = await fakeUsersRepository.create({
+      name: 'valid-name',
+      email: 'valid-email',
+      cpf: 'valid-cpf',
+      telefone: 'valid-phone',
+      password: 'valid-password',
+      tgId: 'valid-tg-id',
+    });
+
+    const anotherValidUser = await fakeUsersRepository.create({
+      name: 'valid-name',
+      email: 'valid-email',
+      cpf: 'valid-cpf',
+      telefone: 'valid-phone',
+      password: 'valid-password',
+      tgId: 'another-valid-tg-id',
+    });
+
+    const staffUser = await fakeUsersRepository.create({
+      name: 'valid-name',
+      email: 'valid-email',
+      cpf: 'valid-cpf',
+      telefone: 'valid-phone',
+      password: 'valid-password',
+      tgId: 'valid-staff-tg-id',
+      isSupport: true,
+    });
+
+    jest.clearAllMocks();
+
+    jest
+      .spyOn<ICacheProvider, any>(fakeCacheProvider, 'recover')
+      .mockImplementationOnce(() => {
+        return undefined;
+      });
+
     const user = await findUsers.execute();
 
     expect(user).toEqual([
