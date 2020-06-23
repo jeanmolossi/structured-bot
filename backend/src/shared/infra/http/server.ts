@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import 'dotenv/config';
 
 import express from 'express';
+import cors from 'cors';
 import 'express-async-errors';
 // import http from 'http';
 // import socketio from 'socket.io';
@@ -14,6 +15,7 @@ import routes from './express/routes';
 import errorHandler from './express/middleware/errorHandler';
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 app.use(routes);
 

@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 
 import ICacheProvider from '@shared/container/providers/CacheProvider/models/ICacheProvider';
 
-import IGroupModel from '../entities/IGroupModel';
+import GroupSchema from '../infra/typeorm/schemas/GroupSchema';
 import IGroupRepository from '../repositories/IGroupRepository';
 
 @injectable()
@@ -15,9 +15,9 @@ export default class FindAllGroups {
     private cacheProvider: ICacheProvider,
   ) {}
 
-  public async execute(exceptHasSync = false): Promise<IGroupModel[] | null> {
+  public async execute(exceptHasSync = false): Promise<GroupSchema[] | null> {
     const cacheKey = `allGroup:${exceptHasSync}`;
-    let groups = await this.cacheProvider.recover<IGroupModel[]>(cacheKey);
+    let groups = await this.cacheProvider.recover<GroupSchema[]>(cacheKey);
 
     if (!groups) {
       groups = await this.groupsRepository.findAll({ exceptHasSync });
