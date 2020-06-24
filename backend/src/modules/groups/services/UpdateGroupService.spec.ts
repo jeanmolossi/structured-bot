@@ -25,7 +25,7 @@ describe('UpdateGroup', () => {
   });
 
   it('Should be able to update a group', async () => {
-    await fakeGroupRepository.create({
+    const createdGroup = await fakeGroupRepository.create({
       name: 'valid-group-name',
       currentId: 123456,
       pastId: 0,
@@ -34,6 +34,7 @@ describe('UpdateGroup', () => {
     });
 
     const updatedGroup = await updateGroup.execute({
+      ...createdGroup,
       name: 'valid-group-name',
       currentId: 1234567,
       pastId: 123456,
@@ -46,7 +47,7 @@ describe('UpdateGroup', () => {
   });
 
   it('Should not be able to update a group with an taken Telegram id', async () => {
-    await fakeGroupRepository.create({
+    const group1 = await fakeGroupRepository.create({
       name: 'valid-group-name',
       currentId: 123456,
       pastId: 0,
@@ -64,8 +65,30 @@ describe('UpdateGroup', () => {
 
     await expect(
       updateGroup.execute({
+        ...group1,
         name: 'valid-group-name',
         currentId: 1234567,
+        pastId: 123456,
+        product: new ObjectId(),
+        productId: 123654,
+      }),
+    ).rejects.toBeInstanceOf(AppError);
+  });
+
+  it('Should not be able to update a group if that has productId like undefined', async () => {
+    const createdGroup = await fakeGroupRepository.create({
+      name: 'valid-group-name',
+      currentId: 123456,
+      pastId: 0,
+      product: new ObjectId(),
+      productId: null,
+    });
+
+    await expect(
+      updateGroup.execute({
+        ...createdGroup,
+        name: 'valid-group-name',
+        currentId: 123456,
         pastId: 123456,
         product: new ObjectId(),
         productId: 123654,

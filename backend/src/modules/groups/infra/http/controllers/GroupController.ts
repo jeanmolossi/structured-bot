@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 import FindAllGroups from '@modules/groups/services/FindAllGroups';
+import UnlinkGroupService from '@modules/groups/services/UnlinkGroupService';
 import UpdateGroupService from '@modules/groups/services/UpdateGroupService';
 
 class GroupsController {
@@ -15,13 +16,30 @@ class GroupsController {
     return response.json(singleGroup);
   }
 
+  public async unlink(request: Request, response: Response): Promise<Response> {
+    const { currentId } = request.body;
+
+    const unlinkGroup = container.resolve(UnlinkGroupService);
+    const updatedGroup = await unlinkGroup.execute(currentId);
+
+    return response.json(updatedGroup);
+  }
+
   public async update(request: Request, response: Response): Promise<Response> {
-    const { id, product, productId, currentId } = request.body;
+    const { id, name, currentId, product, productId, pastId } = request.body;
 
     const updateGroup = container.resolve(UpdateGroupService);
-    // const updatedGroup = await updateGroup.execute({});
 
-    return response.json({ updated: true, ...request.body });
+    const updatedGroup = await updateGroup.execute({
+      id,
+      name,
+      currentId: Number(currentId),
+      product,
+      productId: Number(productId),
+      pastId: Number(pastId),
+    });
+
+    return response.json(updatedGroup);
   }
 }
 

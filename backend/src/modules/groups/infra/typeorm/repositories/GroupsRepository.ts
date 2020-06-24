@@ -4,7 +4,6 @@ import IGroupRepository from '@modules/groups/repositories/IGroupRepository';
 
 import ICreateGroupDTO from '@modules/groups/dtos/ICreateGroupDTO';
 import IFindParamDTO from '@modules/groups/dtos/IFindParamDTO';
-import IGroupModel from '@modules/groups/entities/IGroupModel';
 import AppError from '@shared/errors/AppError';
 import GroupSchema from '../schemas/GroupSchema';
 
@@ -63,7 +62,7 @@ export default class GroupsRepository implements IGroupRepository {
 
   public async findAll({
     exceptHasSync,
-  }: IFindParamDTO): Promise<IGroupModel[] | null> {
+  }: IFindParamDTO): Promise<GroupSchema[] | null> {
     if (exceptHasSync) {
       const groups = await this.ormRepository.find({
         where: { productId: null },

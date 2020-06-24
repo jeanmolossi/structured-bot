@@ -11,6 +11,7 @@ groupRouter.use(ensureAuthenticated);
 // groupRouter.post('/new', groupController.create);
 // groupRouter.get('/show', groupController.show);
 groupRouter.get('/index/:id', groupController.index);
+groupRouter.patch('/unlink', groupController.unlink);
 groupRouter.put('/update', groupController.update);
 
 export default groupRouter;

@@ -43,7 +43,7 @@ export default class FakeGroupRepository implements IGroupRepository {
   }: GroupSchema): Promise<GroupSchema> {
     const gIndex = this.groups.findIndex(group => group.id === id);
 
-    if (!gIndex) throw new AppError('Has not group to update');
+    if (gIndex < 0) throw new AppError('Has not group to update');
 
     this.groups[gIndex] = {
       ...this.groups[gIndex],
