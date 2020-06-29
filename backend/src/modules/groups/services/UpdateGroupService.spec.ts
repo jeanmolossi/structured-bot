@@ -34,14 +34,15 @@ describe('UpdateGroup', () => {
     });
 
     const updatedGroup = await updateGroup.execute({
-      ...createdGroup,
-      name: 'valid-group-name',
+      id: createdGroup.id,
+      name: 'valid-group-name-2',
       currentId: 1234567,
       pastId: 123456,
       product: new ObjectId(),
       productId: 123654,
     });
 
+    expect(updatedGroup.name).toBe('valid-group-name-2');
     expect(updatedGroup.currentId).toBe(1234567);
     expect(updatedGroup.pastId).toBe(123456);
   });
@@ -65,7 +66,7 @@ describe('UpdateGroup', () => {
 
     await expect(
       updateGroup.execute({
-        ...group1,
+        id: group1.id,
         name: 'valid-group-name',
         currentId: 1234567,
         pastId: 123456,
@@ -75,18 +76,10 @@ describe('UpdateGroup', () => {
     ).rejects.toBeInstanceOf(AppError);
   });
 
-  it('Should not be able to update a group if that has productId like undefined', async () => {
-    const createdGroup = await fakeGroupRepository.create({
-      name: 'valid-group-name',
-      currentId: 123456,
-      pastId: 0,
-      product: new ObjectId(),
-      productId: null,
-    });
-
+  it('Should not be able update unexistent group', async () => {
     await expect(
       updateGroup.execute({
-        ...createdGroup,
+        id: new ObjectId(),
         name: 'valid-group-name',
         currentId: 123456,
         pastId: 123456,

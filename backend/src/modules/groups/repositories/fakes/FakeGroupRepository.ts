@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { ObjectId, ObjectID } from 'mongodb';
 
 import GroupSchema from '@modules/groups/infra/typeorm/schemas/GroupSchema';
 import ICreateGroupDTO from '@modules/groups/dtos/ICreateGroupDTO';
@@ -77,6 +77,12 @@ export default class FakeGroupRepository implements IGroupRepository {
 
   public async findByGroupTgId(groupTgId: number): Promise<IGroupModel | null> {
     const group = this.groups.find(g => g.currentId === groupTgId);
+
+    return group || null;
+  }
+
+  public async findById(groupId: ObjectID): Promise<GroupSchema | null> {
+    const group = this.groups.find(g => g.id === groupId);
 
     return group || null;
   }

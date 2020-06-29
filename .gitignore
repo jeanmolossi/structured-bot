@@ -26,3 +26,4 @@ td
 **/yarn-debug.log*
 **/yarn-error.log*
 assets
+**/ormconfig.json

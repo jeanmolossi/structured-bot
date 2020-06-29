@@ -1,4 +1,5 @@
 import { injectable, inject } from 'tsyringe';
+import { ObjectID } from 'mongodb';
 
 import ICacheProvider from '@shared/container/providers/CacheProvider/models/ICacheProvider';
 import AppError from '@shared/errors/AppError';
@@ -18,22 +19,24 @@ export default class UpdateGroupService {
   ) {}
 
   public async execute(groupData: IUpdateGroupDTO): Promise<GroupSchema> {
-    const { currentId } = groupData;
-    const issetGroup = await this.groupsRepository.findByGroupTgId(currentId);
+    const { id, currentId } = groupData;
+    const issetGroup = await this.groupsRepository.findById(id);
+    const issetTgGroup = await this.groupsRepository.findByGroupTgId(currentId);
+
+    if (!issetGroup) throw new AppError('The group not exists');
 
     if (
-      issetGroup &&
-      issetGroup.product &&
-      (issetGroup.productId !== null || issetGroup.productId !== undefined)
+      issetTgGroup &&
+      issetGroup.id !== issetTgGroup.id &&
+      issetTgGroup.product &&
+      issetTgGroup.productId !== null
     )
       throw new AppError('This Telegram id group already taken');
 
-    const data = {
+    const group = await this.groupsRepository.save({
       ...groupData,
-      id: issetGroup.id,
-    };
-
-    const group = await this.groupsRepository.save(data);
+      id: new ObjectID(id),
+    });
 
     await this.cacheProvider.invalidatePrefix('allGroup');
 

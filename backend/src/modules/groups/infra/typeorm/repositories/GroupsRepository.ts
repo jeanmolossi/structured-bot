@@ -5,6 +5,7 @@ import IGroupRepository from '@modules/groups/repositories/IGroupRepository';
 import ICreateGroupDTO from '@modules/groups/dtos/ICreateGroupDTO';
 import IFindParamDTO from '@modules/groups/dtos/IFindParamDTO';
 import AppError from '@shared/errors/AppError';
+import { ObjectID } from 'mongodb';
 import GroupSchema from '../schemas/GroupSchema';
 
 export default class GroupsRepository implements IGroupRepository {
@@ -86,6 +87,14 @@ export default class GroupsRepository implements IGroupRepository {
   public async findByGroupTgId(groupTgId: number): Promise<GroupSchema | null> {
     const group = await this.ormRepository.findOne({
       where: { currentId: groupTgId },
+    });
+
+    return group;
+  }
+
+  public async findById(id: ObjectID): Promise<GroupSchema | null> {
+    const group = await this.ormRepository.findOne({
+      where: { _id: new ObjectID(id) },
     });
 
     return group;

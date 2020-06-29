@@ -3,6 +3,7 @@ import { container } from 'tsyringe';
 
 import AddTransactionService from '@modules/transactions/services/AddTransactionService';
 import ITransactionPayloadDTO from '@modules/product/dtos/ITransactionPayloadDTO';
+import ShowUserTransactionsService from '@modules/transactions/services/ShowUserTransactionsService';
 
 class TransactionsController {
   public async create(request: Request, response: Response): Promise<Response> {
@@ -27,7 +28,12 @@ class TransactionsController {
   }
 
   public async show(request: Request, response: Response): Promise<Response> {
-    return response.json({});
+    const { id } = request.params;
+
+    const showTransactions = container.resolve(ShowUserTransactionsService);
+    const transactions = await showTransactions.execute(id);
+
+    return response.json(transactions);
   }
 
   public async index(request: Request, response: Response): Promise<Response> {

@@ -42,4 +42,16 @@ describe('UnlinkGroup', () => {
   it('Should not be able to update a group without an existing Telegram id', async () => {
     await expect(updateGroup.execute(1234567)).rejects.toBeInstanceOf(AppError);
   });
+
+  it('Should not be able to unlink a group without an product sync', async () => {
+    await fakeGroupRepository.create({
+      name: 'valid-group-name',
+      currentId: 123456,
+      pastId: 0,
+      product: null,
+      productId: null,
+    });
+
+    await expect(updateGroup.execute(123456)).rejects.toBeInstanceOf(AppError);
+  });
 });
